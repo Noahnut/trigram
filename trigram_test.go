@@ -104,7 +104,31 @@ func TestSimpleTrig(t *testing.T) {
 		t.Error("Wrong to find the fileName")
 	}
 
+	tri.Delete("testThree")
+
+	result = tri.Find("ullam gr")
+
+	if len(result) != 0 {
+		t.Error("Delete the file Fail")
+	}
+
 	os.Remove("testOne")
 	os.Remove("testTwo")
 	os.Remove("testThree")
+}
+
+func TestFindTheString(t *testing.T) {
+	tri := NewTrigram()
+	files := []string{"AA", "BB", "CC", "DD", "EE", "FF", "GG", "HH"}
+	result := tri.findTheString(files, "GG")
+
+	if result != 6 {
+		t.Error("Wrong")
+	}
+
+	result = tri.findTheString(files, "KK")
+
+	if result != 8 {
+		t.Error("Wrong")
+	}
 }

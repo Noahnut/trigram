@@ -3,6 +3,7 @@ package trigram
 import (
 	"io/ioutil"
 	"os"
+	"sort"
 	"sync"
 )
 
@@ -35,7 +36,11 @@ func (t *Trigram) addTextToTrigramMap(context uint32, fileName string) {
 		t.trigramMap[uint32(context)] = make([]string, 0)
 	}
 
-	t.trigramMap[context] = append(t.trigramMap[context], fileName)
+	if pos := t.findTheString(t.trigramMap[context], fileName); pos == len(t.trigramMap[context]) {
+		t.trigramMap[context] = append(t.trigramMap[context], fileName)
+	}
+
+	sort.Strings(t.trigramMap[context])
 }
 
 func (t *Trigram) createContextIndex(fileContext string, fileName string) {
@@ -65,6 +70,19 @@ func (t *Trigram) Add(fileName string) error {
 	return nil
 }
 
+func (t *Trigram) Delete(fileName string) error {
+	for tri, files := range t.trigramMap {
+		if pos := t.findTheString(files, fileName); pos != len(files) {
+			if len(files) == 1 {
+				delete(t.trigramMap, tri)
+			} else {
+				copy(files[pos:], files[pos+1:])
+			}
+		}
+	}
+	return nil
+}
+
 func (t *Trigram) Find(queryString string) []string {
 	trg := t.getTrigram(queryString)
 	resultFileMap := make(map[string]bool)
@@ -87,4 +105,20 @@ func (t *Trigram) mapToSlice(resultMap map[string]bool) []string {
 	}
 
 	return result
+}
+
+func (t *Trigram) findTheString(files []string, fileName string) int {
+	start, end := 0, len(files)
+
+	for start < end {
+		mid := (start + end) / 2
+		if files[mid] < fileName {
+			start = mid + 1
+		} else if files[mid] > fileName {
+			end = mid
+		} else {
+			return mid
+		}
+	}
+	return start
 }
